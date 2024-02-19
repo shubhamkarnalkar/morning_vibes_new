@@ -1,4 +1,8 @@
+import 'package:audio_video_progress_bar/audio_video_progress_bar.dart';
 import 'package:flutter/material.dart';
+import 'package:just_audio/just_audio.dart';
+import 'package:just_audio_background/just_audio_background.dart';
+import 'package:rxdart/rxdart.dart';
 
 void main() {
   runApp(const MyApp());
@@ -11,115 +15,253 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
+      title: 'Flutter App!!',
       theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // TRY THIS: Try running your application with "flutter run". You'll see
-        // the application has a blue toolbar. Then, without quitting the app,
-        // try changing the seedColor in the colorScheme below to Colors.green
-        // and then invoke "hot reload" (save your changes or press the "hot
-        // reload" button in a Flutter-supported IDE, or press "r" if you used
-        // the command line to start the app).
-        //
-        // Notice that the counter didn't reset back to zero; the application
-        // state is not lost during the reload. To reset the state, use hot
-        // restart instead.
-        //
-        // This works for code too, not just values: Most code changes can be
-        // tested with just a hot reload.
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+        colorSchemeSeed: Colors.indigo,
         useMaterial3: true,
+        brightness: Brightness.light,
       ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
+      darkTheme: ThemeData(
+        colorSchemeSeed: Colors.amber,
+        useMaterial3: true,
+        brightness: Brightness.dark,
+      ),
+      home: const AudiPlayerWidget(),
+      debugShowCheckedModeBanner: false,
     );
   }
 }
 
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
-
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
-
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
-
-  final String title;
+class AudiPlayerWidget extends StatefulWidget {
+  const AudiPlayerWidget({super.key});
 
   @override
-  State<MyHomePage> createState() => _MyHomePageState();
+  State<AudiPlayerWidget> createState() => _AudiPlayerWidgetState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
+class _AudiPlayerWidgetState extends State<AudiPlayerWidget> {
+  late AudioPlayer _audioPlayer;
 
-  void _incrementCounter() {
-    setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      _counter++;
-    });
+  final _playlist = ConcatenatingAudioSource(children: [
+    AudioSource.asset(
+      'assets/audio_for_papa/1Shree Ram Raksha Stotra.mp3',
+      tag: const MediaItem(
+        id: '1',
+        title: '1RamRaksha',
+      ),
+    ),
+    AudioSource.asset(
+      'assets/audio_for_papa/2Kalbhairavashtak.mp3',
+      tag: const MediaItem(
+        id: '2',
+        title: '2Kalbhairavashtak',
+      ),
+    ),
+    AudioSource.asset(
+      'assets/audio_for_papa/3Bhajans_by_Jagjit_Singh.mp3',
+      tag: const MediaItem(
+        id: '3',
+        title: '3Bhajans_by_Jagjit_Singh',
+      ),
+    ),
+//  "https://ve31.aadika.xyz/download/-_axSlApc98/mp3/128/1707657932/b6def78cd8dae345b6fcc1f606c9345c1271ce4874de986c9d26169436ac1436/1?f=x2mate.com",
+//       "https://ve34.aadika.xyz/download/_CQDgICh-dk/mp3/128/1707658137/dca0e6aa4506d5dcde25e9215fd228600afb64e2bf4491be936f764f86fcad21/1?f=x2mate.com",
+//       "https://ve61.aadika.xyz/download/QTAoyGByWok/mp3/128/1707658289/4f7c3651561fe4c50dc5a1229da1d012f774e74753f59ecc749e9083176f0417/1?f=x2mate.com"
+
+    // AudioSource.uri(
+    //   Uri.parse(
+    //       'https://ve31.aadika.xyz/download/-_axSlApc98/mp3/128/1707657932/b6def78cd8dae345b6fcc1f606c9345c1271ce4874de986c9d26169436ac1436/1?f=x2mate.com'),
+    //   tag: MediaItem(
+    //     id: "1",
+    //     title: "Unknown",
+    //     artist: "Unknown",
+    //     artUri: Uri.parse(""),
+    //   ),
+    // ),
+
+    // AudioSource.uri(
+    //   Uri.parse(
+    //       'https://ve34.aadika.xyz/download/_CQDgICh-dk/mp3/128/1707658137/dca0e6aa4506d5dcde25e9215fd228600afb64e2bf4491be936f764f86fcad21/1?f=x2mate.com'),
+    //   tag: MediaItem(
+    //     id: "1",
+    //     title: "Unknown",
+    //     artist: "Unknown",
+    //     artUri: Uri.parse(""),
+    //   ),
+    // ),
+    // AudioSource.uri(
+    //   Uri.parse(
+    //       'https://ve61.aadika.xyz/download/QTAoyGByWok/mp3/128/1707658289/4f7c3651561fe4c50dc5a1229da1d012f774e74753f59ecc749e9083176f0417/1?f=x2mate.com'),
+    //   tag: MediaItem(
+    //     id: "1",
+    //     title: "Unknown",
+    //     artist: "Unknown",
+    //     artUri: Uri.parse(""),
+    //   ),
+    // ),
+  ]);
+  Stream<PositionData> get positionDataStream =>
+      Rx.combineLatest3<Duration, Duration, Duration?, PositionData>(
+        _audioPlayer.positionStream,
+        _audioPlayer.bufferedPositionStream,
+        _audioPlayer.durationStream,
+        (position, bufferedPositionStream, duration) => PositionData(
+            position, bufferedPositionStream, duration ?? Duration.zero),
+      );
+  @override
+  void initState() {
+    _audioPlayer = AudioPlayer();
+    _init();
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    _audioPlayer.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
+    const String assetImage = "";
     return Scaffold(
       appBar: AppBar(
-        // TRY THIS: Try changing the color here to a specific color (to
-        // Colors.amber, perhaps?) and trigger a hot reload to see the AppBar
-        // change color while the other colors stay the same.
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
-        title: Text(widget.title),
+        title: Text('Good Morning, Pappa!'),
+        centerTitle: true,
       ),
-      body: Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
+      body: Container(
+        padding: const EdgeInsets.all(20),
+        height: double.infinity,
+        width: double.infinity,
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [Color(0xFF144771), Color(0xFF071A2C)],
+          ),
+        ),
         child: Column(
-          // Column is also a layout widget. It takes a list of children and
-          // arranges them vertically. By default, it sizes itself to fit its
-          // children horizontally, and tries to be as tall as its parent.
-          //
-          // Column has various properties to control how it sizes itself and
-          // how it positions its children. Here we use mainAxisAlignment to
-          // center the children vertically; the main axis here is the vertical
-          // axis because Columns are vertical (the cross axis would be
-          // horizontal).
-          //
-          // TRY THIS: Invoke "debug painting" (choose the "Toggle Debug Paint"
-          // action in the IDE, or press "p" in the console), to see the
-          // wireframe for each widget.
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            const Text(
-              'You have pushed the button this many times:',
+          children: [
+            DecoratedBox(
+              decoration: BoxDecoration(
+                boxShadow: const [
+                  BoxShadow(
+                    color: Colors.black12,
+                    offset: Offset(2, 4),
+                    blurRadius: 4,
+                  ),
+                ],
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(10),
+                child: assetImage.isEmpty
+                    ? Image.network(
+                        "https://imgs.search.brave.com/2q2anlk_bsYwmn0Rw6ye3WDytBX1-7JqzTGW1lF3KV0/rs:fit:500:0:0/g:ce/aHR0cHM6Ly9pLnBp/bmltZy5jb20vb3Jp/Z2luYWxzLzZiLzRj/Lzc5LzZiNGM3OTc1/N2I5Y2IxMGQ2YzU1/NGJmZWNjN2QwZDY2/LmpwZw",
+                        height: 300,
+                        width: 300,
+                        fit: BoxFit.cover,
+                      )
+                    : Image.asset(
+                        assetImage,
+                        height: 300,
+                        width: 300,
+                        fit: BoxFit.cover,
+                      ),
+              ),
             ),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headlineMedium,
+            const SizedBox(height: 20),
+            StreamBuilder<PositionData>(
+              stream: positionDataStream,
+              builder: (context, snapshot) {
+                final positionData = snapshot.data;
+                return ProgressBar(
+                  progress: positionData?.position ?? Duration.zero,
+                  buffered: positionData?.bufferedPosition ?? Duration.zero,
+                  total: positionData?.duration ?? Duration.zero,
+                  onSeek: _audioPlayer.seek,
+                );
+              },
+            ),
+            const SizedBox(height: 20),
+            Controls(
+              audioPlayer: _audioPlayer,
             ),
           ],
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
     );
   }
+
+  Future _init() async {
+    await _audioPlayer.setLoopMode(LoopMode.all);
+    await _audioPlayer.setAudioSource(_playlist);
+    // await _audioPlayer.dynamicSetAll([
+    //   "https://ve31.aadika.xyz/download/-_axSlApc98/mp3/128/1707657932/b6def78cd8dae345b6fcc1f606c9345c1271ce4874de986c9d26169436ac1436/1?f=x2mate.com",
+    //   "https://ve34.aadika.xyz/download/_CQDgICh-dk/mp3/128/1707658137/dca0e6aa4506d5dcde25e9215fd228600afb64e2bf4491be936f764f86fcad21/1?f=x2mate.com",
+    //   "https://ve61.aadika.xyz/download/QTAoyGByWok/mp3/128/1707658289/4f7c3651561fe4c50dc5a1229da1d012f774e74753f59ecc749e9083176f0417/1?f=x2mate.com"
+    // ]);
+  }
+}
+
+class Controls extends StatelessWidget {
+  const Controls({super.key, required this.audioPlayer});
+  final AudioPlayer audioPlayer;
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        IconButton(
+          icon: const Icon(Icons.skip_previous_rounded),
+          onPressed: audioPlayer.seekToPrevious,
+          iconSize: 60,
+          color: Colors.white,
+        ),
+        StreamBuilder<PlayerState>(
+          stream: audioPlayer.playerStateStream,
+          builder: (BuildContext context, AsyncSnapshot<PlayerState> snapshot) {
+            final playerState = snapshot.data;
+            final processingState = playerState?.processingState;
+            final playing = playerState?.playing;
+            // debugPrint(playing.toString());
+            if (!(playing ?? false)) {
+              return IconButton(
+                onPressed: audioPlayer.play,
+                icon: const Icon(Icons.play_arrow_rounded),
+                iconSize: 80,
+                color: Colors.white,
+              );
+            } else if (processingState != ProcessingState.completed) {
+              return IconButton(
+                icon: const Icon(Icons.pause_rounded),
+                onPressed: audioPlayer.pause,
+                color: Colors.white,
+                iconSize: 80,
+              );
+            }
+            return const Icon(
+              Icons.play_arrow_rounded,
+              size: 80,
+              color: Colors.white,
+            );
+          },
+        ),
+        IconButton(
+          icon: const Icon(Icons.skip_next_rounded),
+          onPressed: audioPlayer.seekToNext,
+          iconSize: 60,
+          color: Colors.white,
+        ),
+      ],
+    );
+  }
+}
+
+class PositionData {
+  final Duration position;
+  final Duration bufferedPosition;
+  final Duration duration;
+
+  const PositionData(this.position, this.bufferedPosition, this.duration);
 }
