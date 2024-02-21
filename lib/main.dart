@@ -1,4 +1,6 @@
+// import 'package:audio_video_progress_bar/audio_video_progress_bar.dart';
 import 'package:audio_video_progress_bar/audio_video_progress_bar.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:just_audio_background/just_audio_background.dart';
@@ -126,7 +128,13 @@ class _AudiPlayerWidgetState extends State<AudiPlayerWidget> {
     const String assetImage = "";
     return Scaffold(
       appBar: AppBar(
-        title: Text('Good Morning, Pappa!'),
+        title: const Text(
+          'Good Morning, Pappa!',
+          style: TextStyle(
+            fontStyle: FontStyle.italic,
+            // fontFamily: "Consolas",
+          ),
+        ),
         centerTitle: true,
       ),
       body: Container(
@@ -137,10 +145,11 @@ class _AudiPlayerWidgetState extends State<AudiPlayerWidget> {
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [Color(0xFF144771), Color(0xFF071A2C)],
+            colors: [Colors.black45, Colors.orangeAccent],
           ),
         ),
         child: Column(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
             DecoratedBox(
               decoration: BoxDecoration(
@@ -156,11 +165,15 @@ class _AudiPlayerWidgetState extends State<AudiPlayerWidget> {
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(10),
                 child: assetImage.isEmpty
-                    ? Image.network(
-                        "https://imgs.search.brave.com/2q2anlk_bsYwmn0Rw6ye3WDytBX1-7JqzTGW1lF3KV0/rs:fit:500:0:0/g:ce/aHR0cHM6Ly9pLnBp/bmltZy5jb20vb3Jp/Z2luYWxzLzZiLzRj/Lzc5LzZiNGM3OTc1/N2I5Y2IxMGQ2YzU1/NGJmZWNjN2QwZDY2/LmpwZw",
-                        height: 300,
-                        width: 300,
+                    // https://socialstatusdp.com/wp-content/uploads/2023/02/Lord-Rama-HD-Image-Digital-Painting-By-Chandra-Sekhar-Poudyal-1024x1024.jpg
+                    ? CachedNetworkImage(
                         fit: BoxFit.cover,
+                        imageUrl:
+                            "https://socialstatusdp.com/wp-content/uploads/2023/02/Lord-Rama-HD-Image-Digital-Painting-By-Chandra-Sekhar-Poudyal-1024x1024.jpg",
+                        placeholder: (context, url) =>
+                            const CircularProgressIndicator(),
+                        errorWidget: (context, url, error) =>
+                            const Icon(Icons.error),
                       )
                     : Image.asset(
                         assetImage,
@@ -170,7 +183,7 @@ class _AudiPlayerWidgetState extends State<AudiPlayerWidget> {
                       ),
               ),
             ),
-            const SizedBox(height: 20),
+            // const SizedBox(height: 20),
             StreamBuilder<PositionData>(
               stream: positionDataStream,
               builder: (context, snapshot) {
@@ -181,9 +194,10 @@ class _AudiPlayerWidgetState extends State<AudiPlayerWidget> {
                   total: positionData?.duration ?? Duration.zero,
                   onSeek: _audioPlayer.seek,
                 );
+                // return Text("${positionData?.position ?? Duration.zero}");
               },
             ),
-            const SizedBox(height: 20),
+            // const SizedBox(height: 20),
             Controls(
               audioPlayer: _audioPlayer,
             ),
