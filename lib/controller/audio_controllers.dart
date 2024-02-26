@@ -12,7 +12,7 @@ class Controls extends StatelessWidget {
         IconButton(
           icon: const Icon(Icons.skip_previous_rounded),
           onPressed: audioPlayer.seekToPrevious,
-          iconSize: 60,
+          iconSize: 50,
           color: Colors.white,
         ),
         StreamBuilder<PlayerState>(
@@ -25,8 +25,8 @@ class Controls extends StatelessWidget {
             if (!(playing ?? false)) {
               return IconButton(
                 onPressed: audioPlayer.play,
-                icon: const Icon(Icons.play_arrow_rounded),
-                iconSize: 80,
+                icon: const Icon(Icons.play_circle),
+                iconSize: 70,
                 color: Colors.white,
               );
             } else if (processingState != ProcessingState.completed) {
@@ -34,12 +34,12 @@ class Controls extends StatelessWidget {
                 icon: const Icon(Icons.pause_rounded),
                 onPressed: audioPlayer.pause,
                 color: Colors.white,
-                iconSize: 80,
+                iconSize: 50,
               );
             }
             return const Icon(
-              Icons.play_arrow_rounded,
-              size: 80,
+              Icons.play_circle,
+              size: 70,
               color: Colors.white,
             );
           },
@@ -47,7 +47,7 @@ class Controls extends StatelessWidget {
         IconButton(
           icon: const Icon(Icons.skip_next_rounded),
           onPressed: audioPlayer.seekToNext,
-          iconSize: 60,
+          iconSize: 50,
           color: Colors.white,
         ),
       ],

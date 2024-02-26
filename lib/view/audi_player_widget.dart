@@ -3,8 +3,10 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:just_audio_background/just_audio_background.dart';
+import 'package:morning_vibes/common/extensions/greetings_for_date.dart';
 import 'package:rxdart/rxdart.dart';
 
+import '../common/constants_app.dart';
 import '../controller/audio_controllers.dart';
 import '../models/position_audio_model.dart';
 
@@ -17,7 +19,7 @@ class AudiPlayerWidget extends StatefulWidget {
 
 class _AudiPlayerWidgetState extends State<AudiPlayerWidget> {
   late AudioPlayer _audioPlayer;
-
+  final String _greeting = DateTime.now().getGreetingFromHour();
   final _playlist = ConcatenatingAudioSource(children: [
     AudioSource.asset(
       'assets/audio_for_papa/1Shree Ram Raksha Stotra.mp3',
@@ -102,25 +104,33 @@ class _AudiPlayerWidgetState extends State<AudiPlayerWidget> {
     const String assetImage = "";
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
-          'Good Morning, Pappa!',
-          style: TextStyle(
-            fontStyle: FontStyle.italic,
+        title: Text(
+          _greeting,
+          style: const TextStyle(
+            // fontStyle: FontStyle.italic,
+            fontWeight: FontWeight.bold,
             // fontFamily: "Consolas",
           ),
         ),
-        centerTitle: true,
+        actions: [
+          IconButton(
+            onPressed: () {},
+            icon: const Icon(Icons.settings),
+          ),
+        ],
+        // centerTitle: true,
       ),
       body: Container(
         padding: const EdgeInsets.all(20),
         height: double.infinity,
         width: double.infinity,
         decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [Colors.black45, Colors.orangeAccent],
-          ),
+          // gradient: LinearGradient(
+          //   begin: Alignment.topCenter,
+          //   end: Alignment.bottomCenter,
+          //   colors: [Colors.black45, Colors.orangeAccent],
+          // ),
+          color: Colors.black,
         ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -139,11 +149,9 @@ class _AudiPlayerWidgetState extends State<AudiPlayerWidget> {
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(10),
                 child: assetImage.isEmpty
-                    // https://socialstatusdp.com/wp-content/uploads/2023/02/Lord-Rama-HD-Image-Digital-Painting-By-Chandra-Sekhar-Poudyal-1024x1024.jpg
                     ? CachedNetworkImage(
                         fit: BoxFit.cover,
-                        imageUrl:
-                            "https://socialstatusdp.com/wp-content/uploads/2023/02/Lord-Rama-HD-Image-Digital-Painting-By-Chandra-Sekhar-Poudyal-1024x1024.jpg",
+                        imageUrl: ConstantsApp.defaultImageUrl,
                         placeholder: (context, url) =>
                             const CircularProgressIndicator(),
                         errorWidget: (context, url, error) =>
@@ -158,18 +166,34 @@ class _AudiPlayerWidgetState extends State<AudiPlayerWidget> {
               ),
             ),
             // const SizedBox(height: 20),
-            StreamBuilder<PositionData>(
-              stream: positionDataStream,
-              builder: (context, snapshot) {
-                final positionData = snapshot.data;
-                return ProgressBar(
-                  progress: positionData?.position ?? Duration.zero,
-                  buffered: positionData?.bufferedPosition ?? Duration.zero,
-                  total: positionData?.duration ?? Duration.zero,
-                  onSeek: _audioPlayer.seek,
-                );
-                // return Text("${positionData?.position ?? Duration.zero}");
-              },
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: StreamBuilder<PositionData>(
+                stream: positionDataStream,
+                builder: (context, snapshot) {
+                  final positionData = snapshot.data;
+                  return ProgressBar(
+                    progress: positionData?.position ?? Duration.zero,
+                    buffered: positionData?.bufferedPosition ?? Duration.zero,
+                    total: positionData?.duration ?? Duration.zero,
+                    onSeek: _audioPlayer.seek,
+                    barHeight: 3,
+                    baseBarColor: Colors.white24,
+                    barCapShape: BarCapShape.round,
+                    bufferedBarColor: Colors.black38,
+                    progressBarColor: Colors.white,
+                    thumbColor: Colors.white,
+                    thumbRadius: 4,
+                    timeLabelPadding: 15,
+                    timeLabelTextStyle: const TextStyle(
+                      // fontWeight: FontWeight.normal,
+                      fontSize: 14,
+                      color: Colors.white,
+                    ),
+                  );
+                  // return Text("${positionData?.position ?? Duration.zero}");
+                },
+              ),
             ),
             // const SizedBox(height: 20),
             Controls(
