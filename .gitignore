@@ -44,5 +44,5 @@ app.*.map.json
 /android/app/release
 
 # Bulky files
-assets/audio_for_papa
+# assets/audio_for_papa
 # assets/images/webp/

@@ -34,7 +34,7 @@ class Controls extends StatelessWidget {
                 icon: const Icon(Icons.pause_rounded),
                 onPressed: audioPlayer.pause,
                 color: Colors.white,
-                iconSize: 50,
+                iconSize: 70,
               );
             }
             return const Icon(

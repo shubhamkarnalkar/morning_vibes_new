@@ -2,10 +2,9 @@ import 'package:audio_video_progress_bar/audio_video_progress_bar.dart';
 import 'package:extended_image/extended_image.dart';
 import 'package:flutter/material.dart';
 import 'package:just_audio/just_audio.dart';
+import 'package:just_audio_background/just_audio_background.dart';
 import 'package:morning_vibes/common/extensions/greetings_for_date.dart';
 import 'package:rxdart/rxdart.dart';
-import 'package:flutter/services.dart';
-
 import '../common/constants_app.dart';
 import '../controller/audio_controllers.dart';
 import '../models/position_audio_model.dart';
@@ -20,7 +19,31 @@ class AudiPlayerWidget extends StatefulWidget {
 class _AudiPlayerWidgetState extends State<AudiPlayerWidget>
     with WidgetsBindingObserver {
   late AudioPlayer _audioPlayer;
+  final _playlist = ConcatenatingAudioSource(children: [
+    AudioSource.asset(
+      'assets/audio_for_papa/1Shree Ram Raksha Stotra.mp3',
+      tag: const MediaItem(
+        id: '1',
+        title: '1RamRaksha',
+      ),
+    ),
+    AudioSource.asset(
+      'assets/audio_for_papa/2Kalbhairavashtak.mp3',
+      tag: const MediaItem(
+        id: '2',
+        title: '2Kalbhairavashtak',
+      ),
+    ),
+    AudioSource.asset(
+      'assets/audio_for_papa/3Bhajans_by_Jagjit_Singh.mp3',
+      tag: const MediaItem(
+        id: '3',
+        title: '3Bhajans_by_Jagjit_Singh',
+      ),
+    ),
+  ]);
   final String _greeting = DateTime.now().getGreetingFromHour();
+
   Stream<PositionData> get positionDataStream =>
       Rx.combineLatest3<Duration, Duration, Duration?, PositionData>(
         _audioPlayer.positionStream,
@@ -158,7 +181,7 @@ class _AudiPlayerWidgetState extends State<AudiPlayerWidget>
   }
 
   Future _init() async {
-    await _audioPlayer.setLoopMode(LoopMode.all);
-    // await _audioPlayer.setAudioSource();
+    await _audioPlayer.setLoopMode(LoopMode.off);
+    await _audioPlayer.setAudioSource(_playlist);
   }
 }
